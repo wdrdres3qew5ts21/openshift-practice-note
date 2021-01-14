@@ -1,0 +1,64 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: productservice-example
+  template: productservice-example
+message: |-
+  The following service(s) have been created in your project: ${NAME}, ${DATABASE_SERVICE_NAME}.
+
+  For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/cakephp-ex/blob/master/README.md.
+metadata:
+  annotations:
+    description: |-
+      ProductService that connected to MySQL Database
+    iconClass: icon-php
+    openshift.io/display-name: ProductService that connected to MySQL Database
+    openshift.io/documentation-url: https://wdrdres3qew5ts21@gmail.com
+    openshift.io/long-description: Product Service Template
+    openshift.io/provider-display-name: Tao Dev Ops, Kaisha Inc.
+    tags: quickstart,php,cakephp
+    template.openshift.io/bindable: "false"
+  labels:
+    samples.operator.openshift.io/managed: "true"
+  name: productservice-example
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: Exposes the database server
+    name: ${DATABASE_SERVICE_NAME}
+  spec:
+    ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+    selector:
+      name: ${DATABASE_SERVICE_NAME}
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: productservice
+    name: productservice
+  spec:
+    containers:
+    - image: docker.io/linxianer12/istio-productservice:trace
+      name: productservice
+      resources: {}
+    dnsPolicy: ClusterFirst
+    restartPolicy: Always
+  status: {}
+parameters:
+- description: The name assigned to all of the frontend objects defined in this template.
+  displayName: Name
+  name: NAME
+  required: true
+  value: ProductService that connected to MySQL Database
+- description: Datbase Service Name for internal Kubernetes Discovery
+  displayName: Datbase Service Name
+  name: DATABASE_SERVICE_NAME
+  required: true
+  value: mysql
+
