@@ -35,9 +35,30 @@ COMPOSER_MIRROR           The custom Composer mirror URL
 ```
 
 ### ทดลอง Build จาก Context ข้างใน
-แล้วจะให้ใช้ Webhook Trigger Build
+แล้วจะให้ใช้ Webhook Trigger Build ซึ่งปัจจุบัน Github นั้นใช้ Branch ชื่อ Main แทน Master แล้วนะดังนั้นเราต้องระบุตัว BuildConfig refs ของ Git ด้วยไม่งั้นจะ Build แล้วไม่ยอม Trigger 
+
 ```
 oc  new-app cakephp-mysql-example -p DATABASE_USER=linxianer12 -p DATABASE_PASSWORD=cyberpunk2077 -p SOURCE_REPOSITORY_URL=https://github.com/wdrdres3qew5ts21/openshift-practice-note -p CONTEXT_DIR=cakephp-ex  -p  SOURCE_REPOSITORY_REF=main
 
 ```
+###### ตัวอย่าง BuildConfig
+```
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: cakephp-mysql-example:latest
+  postCommit:
+    script: ./vendor/bin/phpunit
+  resources: {}
+  runPolicy: Serial
+  source:
+    contextDir: cakephp-ex
+    git:
+      ref: main
+      uri: https://github.com/wdrdres3qew5ts21/openshift-practice-note
+    type: Git
 
+```
