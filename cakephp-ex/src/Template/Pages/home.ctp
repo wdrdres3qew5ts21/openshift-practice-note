@@ -1,9 +1,10 @@
         <div class="row">
           <section class='col-xs-12 col-sm-6 col-md-6'>
             <section>
-            <h1 style="color: salmon">Red Hatter is Trigger !</h1>
+            <h1 style="color: salmon">Openshift is Trigger !</h1>
             <p>Already using JSON for webhook ;)</p>
             <p>Github using "main" instead "master" branch perhaps I can fix this !</p>
+            <p style="color: salmon">Success in fixing :D</p>
               <h2>How to use this example application</h2>
                 <p>For instructions on how to use this application with OpenShift, start by reading the <a href="http://docs.okd.io/latest/dev_guide/templates.html#using-the-quickstart-templates">Developer Guide</a>.</p>
 

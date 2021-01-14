@@ -1,7 +1,7 @@
 {
     "ref": "refs/heads/main",
-    "before": "efdc2a751809435a5bae1763d31ed94fc0bdd517",
-    "after": "a32c8ec55d6ea4a6892212db78c45f0763cdc7a4",
+    "before": "a32c8ec55d6ea4a6892212db78c45f0763cdc7a4",
+    "after": "67e42d4d06b1326bbdf2057dadcbe45c82cfda00",
     "repository": {
       "id": 329289895,
       "node_id": "MDEwOlJlcG9zaXRvcnkzMjkyODk4OTU=",
@@ -71,8 +71,8 @@
       "releases_url": "https://api.github.com/repos/wdrdres3qew5ts21/openshift-practice-note/releases{/id}",
       "deployments_url": "https://api.github.com/repos/wdrdres3qew5ts21/openshift-practice-note/deployments",
       "created_at": 1610538157,
-      "updated_at": "2021-01-14T07:18:14Z",
-      "pushed_at": 1610609508,
+      "updated_at": "2021-01-14T07:31:51Z",
+      "pushed_at": 1610611664,
       "git_url": "git://github.com/wdrdres3qew5ts21/openshift-practice-note.git",
       "ssh_url": "git@github.com:wdrdres3qew5ts21/openshift-practice-note.git",
       "clone_url": "https://github.com/wdrdres3qew5ts21/openshift-practice-note.git",
@@ -128,15 +128,15 @@
     "deleted": false,
     "forced": false,
     "base_ref": null,
-    "compare": "https://github.com/wdrdres3qew5ts21/openshift-practice-note/compare/efdc2a751809...a32c8ec55d6e",
+    "compare": "https://github.com/wdrdres3qew5ts21/openshift-practice-note/compare/a32c8ec55d6e...67e42d4d06b1",
     "commits": [
       {
-        "id": "a32c8ec55d6ea4a6892212db78c45f0763cdc7a4",
-        "tree_id": "894413bc864acbd4a97386b4ca26b4bd6ea65644",
+        "id": "67e42d4d06b1326bbdf2057dadcbe45c82cfda00",
+        "tree_id": "c4632e756415a526975b54d6b4acdaca03529f15",
         "distinct": true,
-        "message": "[ADD] แก้ Webhook Push JSON",
-        "timestamp": "2021-01-14T14:31:38+07:00",
-        "url": "https://github.com/wdrdres3qew5ts21/openshift-practice-note/commit/a32c8ec55d6ea4a6892212db78c45f0763cdc7a4",
+        "message": "[FIX] บังคับใช้ Branch Main แทน Master เพราะ BLM",
+        "timestamp": "2021-01-14T15:07:28+07:00",
+        "url": "https://github.com/wdrdres3qew5ts21/openshift-practice-note/commit/67e42d4d06b1326bbdf2057dadcbe45c82cfda00",
         "author": {
           "name": "Naomi Lin",
           "email": "linxianer12@localhost.localdomain"
@@ -146,23 +146,24 @@
           "email": "linxianer12@localhost.localdomain"
         },
         "added": [
-  
+          "payload.json"
         ],
         "removed": [
   
         ],
         "modified": [
+          "README.md",
           "cakephp-ex/src/Template/Pages/home.ctp"
         ]
       }
     ],
     "head_commit": {
-      "id": "a32c8ec55d6ea4a6892212db78c45f0763cdc7a4",
-      "tree_id": "894413bc864acbd4a97386b4ca26b4bd6ea65644",
+      "id": "67e42d4d06b1326bbdf2057dadcbe45c82cfda00",
+      "tree_id": "c4632e756415a526975b54d6b4acdaca03529f15",
       "distinct": true,
-      "message": "[ADD] แก้ Webhook Push JSON",
-      "timestamp": "2021-01-14T14:31:38+07:00",
-      "url": "https://github.com/wdrdres3qew5ts21/openshift-practice-note/commit/a32c8ec55d6ea4a6892212db78c45f0763cdc7a4",
+      "message": "[FIX] บังคับใช้ Branch Main แทน Master เพราะ BLM",
+      "timestamp": "2021-01-14T15:07:28+07:00",
+      "url": "https://github.com/wdrdres3qew5ts21/openshift-practice-note/commit/67e42d4d06b1326bbdf2057dadcbe45c82cfda00",
       "author": {
         "name": "Naomi Lin",
         "email": "linxianer12@localhost.localdomain"
@@ -172,12 +173,13 @@
         "email": "linxianer12@localhost.localdomain"
       },
       "added": [
-  
+        "payload.json"
       ],
       "removed": [
   
       ],
       "modified": [
+        "README.md",
         "cakephp-ex/src/Template/Pages/home.ctp"
       ]
     }
