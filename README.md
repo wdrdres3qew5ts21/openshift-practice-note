@@ -10,6 +10,8 @@ oc get template -n openshift
 oc  new-app --template=openshift/cakephp-mysql-example -p DATABASE_USER=linxianer12 -p DATABASE_PASSWORD=cyberpunk2077 
 
 ### ทดลองแสดงเฉพาะค่า paramter จาก Template
+###### SOURCE_REPOSITORY_REF สำคัญมากการใส่ Branch เพราะไม่อย่านั้นเกิด Default Branch เปลี่ยนเราก็จะผิดไปด้วย
+ปัจจุบัน Default Branch ไม่ใช้ Master แต่เป็น Main แทน
 ```
 [linxianer12@localhost project]$ oc process  --parameters  -n openshift  cakephp-mysql-example
 NAME                      DESCRIPTION                                                                                                                     GENERATOR           VALUE
@@ -62,3 +64,249 @@ spec:
     type: Git
 
 ```
+##### เซ็ทได้ทั้งแผงเลย
+อ้างถึง configmap จากอีกที่แล้ว Inject ลงไปเอาไว้ใช้ตอนสอบได้นะอย่างเทพเลย !
+```
+oc set env dc/cakephp-mysql-example --from cm/webserver
+
+      - env:
+        - name: DATABASE_SERVICE_NAME
+          value: mysql
+        - name: DATABASE_ENGINE
+          value: mysql
+        - name: DATABASE_NAME
+          value: default
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              key: database-user
+              name: cakephp-mysql-example
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: cakephp-mysql-example
+        - name: CAKEPHP_SECRET_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: cakephp-secret-token
+              name: cakephp-mysql-example
+        - name: CAKEPHP_SECURITY_SALT
+          valueFrom:
+            secretKeyRef:
+              key: cakephp-security-salt
+              name: cakephp-mysql-example
+        - name: OPCACHE_REVALIDATE_FREQ
+          value: "2"
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              key: PORT
+              name: webserver
+        - name: URL
+          valueFrom:
+            configMapKeyRef:
+              key: URL
+              name: webserver
+```
+ทดลองสร้าง Secret แบบ Reference ง่ายๆดูดีกว่าซิ้
+```
+[linxianer12@localhost openshift-practice-note]$ oc set env deployment custom-web --from cm/webserver --from secret/webserver --dry-run=true -oyaml 
+W0115 13:34:46.644482   10460 helpers.go:567] --dry-run=true is deprecated (boolean value) and can be replaced with --dry-run=client.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: "2021-01-15T06:33:40Z"
+  generation: 1
+  labels:
+    app: custom-web
+  name: custom-web
+  namespace: cake-mono-repo
+  resourceVersion: "493009021"
+  selfLink: /apis/apps/v1/namespaces/cake-mono-repo/deployments/custom-web
+  uid: a06e1441-3a5a-4287-bd60-1715321e158d
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: custom-web
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: custom-web
+    spec:
+      containers:
+      - env:
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: DATABASE_PASSWORD
+              name: webserver
+        - name: FB_KEY
+          valueFrom:
+            secretKeyRef:
+              key: FB_KEY
+              name: webserver
+        image: quay.io/linxianer12/apache:1.0.15
+        imagePullPolicy: IfNotPresent
+        name: apache
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  conditions:
+  - lastTransitionTime: "2021-01-15T06:33:40Z"
+    lastUpdateTime: "2021-01-15T06:33:40Z"
+    message: Deployment does not have minimum availability.
+    reason: MinimumReplicasUnavailable
+    status: "False"
+    type: Available
+  - lastTransitionTime: "2021-01-15T06:33:40Z"
+    lastUpdateTime: "2021-01-15T06:33:40Z"
+    message: ReplicaSet "custom-web-7b85767775" is progressing.
+    reason: ReplicaSetUpdated
+    status: "True"
+    type: Progressing
+  observedGeneration: 1
+  replicas: 1
+  unavailableReplicas: 1
+  updatedReplicas: 1
+[linxianer12@localhost openshift-practice-note]$ oc set env deployment custom-web --from cm/webserver 
+deployment.apps/custom-web updated
+[linxianer12@localhost openshift-practice-note]$ oc set env deployment custom-web --from secet/webserver
+^C
+[linxianer12@localhost openshift-practice-note]$ oc set env deployment custom-web --from secret/webserver
+deployment.apps/custom-web updated
+[linxianer12@localhost openshift-practice-note]$ oc get deployment custom-web
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+custom-web   0/1     1            0           117s
+[linxianer12@localhost openshift-practice-note]$ oc get deployment custom-web -oyaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "3"
+  creationTimestamp: "2021-01-15T06:33:40Z"
+  generation: 3
+  labels:
+    app: custom-web
+  name: custom-web
+  namespace: cake-mono-repo
+  resourceVersion: "493012026"
+  selfLink: /apis/apps/v1/namespaces/cake-mono-repo/deployments/custom-web
+  uid: a06e1441-3a5a-4287-bd60-1715321e158d
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: custom-web
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: custom-web
+    spec:
+      containers:
+      - env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              key: PORT
+              name: webserver
+        - name: URL
+          valueFrom:
+            configMapKeyRef:
+              key: URL
+              name: webserver
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: DATABASE_PASSWORD
+              name: webserver
+        - name: FB_KEY
+          valueFrom:
+            secretKeyRef:
+              key: FB_KEY
+              name: webserver
+        image: quay.io/linxianer12/apache:1.0.15
+        imagePullPolicy: IfNotPresent
+        name: apache
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  conditions:
+  - lastTransitionTime: "2021-01-15T06:33:40Z"
+    lastUpdateTime: "2021-01-15T06:33:40Z"
+    message: Deployment does not have minimum availability.
+    reason: MinimumReplicasUnavailable
+    status: "False"
+    type: Available
+  - lastTransitionTime: "2021-01-15T06:33:40Z"
+    lastUpdateTime: "2021-01-15T06:35:30Z"
+    message: ReplicaSet "custom-web-68c49977f4" is progressing.
+    reason: ReplicaSetUpdated
+    status: "True"
+    type: Progressing
+  observedGeneration: 3
+  replicas: 2
+  unavailableReplicas: 2
+  updatedReplicas: 1
+```
+
+#### Set Volume โดยโยน Secret เข้าไป
+การทำก็ง่ายมากเพียงแค่ใส่ flag --add ลงไปในนั้นไม่ก็ --remove
+oc set volume deployment todoapp --mount-path=/var/www/html --add --name=firebase-volume --secret-name=firebase-secret
+```
+    spec:
+      containers:
+      - image: quay.io/linxianer12/todoapp:1.0.12
+        imagePullPolicy: IfNotPresent
+        name: todoapp
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: firebase-volume
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: firebase-volume
+        secret:
+          defaultMode: 420
+          secretName: firebase-secret
+
+```
+
+
