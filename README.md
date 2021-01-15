@@ -316,6 +316,8 @@ oc create secret generic myapp.sec  --from-env-file=myapp.sec --dry-run -oyaml |
 
 
 ##### สร้างแอพ Java 
-ถ้าปลายทางที่ Dockerfiel อยุ่แล้วระบบจะทำการ Detect ใช้ Dockerfile ในการ Build แต่ถ้าเกิดเรามีแต่เราอยากใช้ S2I เราสามารถทำได้โดยการบังคับ Strategy ลงไปนั่นเอง
+ถ้าปลายทางที่ Dockerfiel อยุ่แล้วระบบจะทำการ Detect ใช้ Dockerfile ในการ Build แต่ถ้าเกิดเรามีแต่เราอยากใช้ S2I เราสามารถทำได้โดยการบังคับ Strategy ลงไปนั่นเอง โดยเราจะเริ่มลงองแบบ Build ดิบๆกาอนโดยชี้ไปที่ Source Code เลยเพื่อทำ S2I และจากนั้นจะลองมาแก้ปัญหา Docker ไม่สามารถ Excuted ไฟล์ได้กัน
 oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/hello-java/app-src  --as-deployment-config --name  hello-java --strategy=source
+
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/hello-java  --as-deployment-config --name  hello-java-docker --strategy=source
 
