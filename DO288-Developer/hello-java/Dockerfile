@@ -17,7 +17,7 @@ ADD   https://github.com/RedHatTraining/DO288-apps/releases/download/OCP-4.1-1/h
 
 COPY  run-app.sh /opt/app-root/bin/
 
-RUN   chown -R wildfly:wildfly /opt/app-root && \
+RUN   chown -R wildfly:root /opt/app-root && \
       chmod -R 770 /opt/app-root
 
 EXPOSE 8080

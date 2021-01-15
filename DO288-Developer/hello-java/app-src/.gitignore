@@ -1,0 +1,5 @@
+*.war
+*.jar
+target/
+.classapth
+.project
