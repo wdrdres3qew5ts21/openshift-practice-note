@@ -189,7 +189,8 @@ status:
 [linxianer12@localhost openshift-practice-note]$ oc set env deployment custom-web --from cm/webserver 
 deployment.apps/custom-web updated
 [linxianer12@localhost openshift-practice-note]$ oc set env deployment custom-web --from secet/webserver
-^C
+
+
 [linxianer12@localhost openshift-practice-note]$ oc set env deployment custom-web --from secret/webserver
 deployment.apps/custom-web updated
 [linxianer12@localhost openshift-practice-note]$ oc get deployment custom-web
@@ -308,5 +309,13 @@ oc set volume deployment todoapp --mount-path=/var/www/html --add --name=firebas
           secretName: firebase-secret
 
 ```
+#####  สร้าง project nodejs ส่งค่า ENV
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/app-config/  --as-deployment-config --name  backend-api -e APP_MSG="DevOps is culture to Accerelate Organize !"
 
+oc create secret generic myapp.sec  --from-env-file=myapp.sec --dry-run -oyaml | oc apply -f -
+
+
+##### สร้างแอพ Java 
+ถ้าปลายทางที่ Dockerfiel อยุ่แล้วระบบจะทำการ Detect ใช้ Dockerfile ในการ Build แต่ถ้าเกิดเรามีแต่เราอยากใช้ S2I เราสามารถทำได้โดยการบังคับ Strategy ลงไปนั่นเอง
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/hello-java  --as-deployment-config --name  hello-java --strategy=source
 
