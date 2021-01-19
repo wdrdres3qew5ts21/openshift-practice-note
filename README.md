@@ -1,5 +1,34 @@
 # DO280-apps
 
+### Inspect Container
+docker:// ใช้เรียกบน HTTP ส่วน containers-storage: ใช้กับ podman ส่วน docker-daemon: ใช้กับ image ที่มีอยู่ในครเื่องเราของ docker 
+ดูคำสั่งเพิ่มเติมได้จาก man skopeo
+```
+[linxianer12@localhost Certified-Rancher-Operator-Thai]$ skopeo inspect containers-storage:quay.io/linxianer12/apache:1.0.1                                                       
+{                                                                                                                                                                                 
+    "Name": "quay.io/linxianer12/apache",                                                                                                                                         
+    "Digest": "sha256:73c33bda154d41e9fdb5469f4e48d66f515f1318e15634f51dbc68a828f0e757",                                                                                          
+    "RepoTags": [],                                                                                                                                                               
+    "Created": "2021-01-11T15:31:29.161828018Z",                                                                                                                                  
+    "DockerVersion": "",                                                                                                                                                          
+    "Labels": {                                                                                                                                                                   
+        "architecture": "x86_64",                                                                                                                                                 
+        "authoritative-source-url": "registry.access.redhat.com",                                                                                                                 
+        "build-date": "2020-03-10T10:38:13.657446",                                                                                                                               
+        "com.redhat.build-host": "cpt-1004.osbs.prod.upshift.rdu2.redhat.com",                                                                                                    
+        "com.redhat.component": "ubi7-container",                                                                                                                                 
+        "com.redhat.license_terms": "https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI",                                                                    
+        "description": "The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base i
+mage is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regular
+ly.",                                                                                                                                                                             
+        "distribution-scope": "public",
+        "io.buildah.version": "1.18.0",
+        "io.k8s.description": "The Universal Base Image is designed and engineered to be the base layer for all of your containerized applications, middleware and utilities. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.",
+        "io.k8s.display-name": "Red Hat Universal Base Image 7",
+
+```
+
+
 oc new-project cake-php
 
 ### เรัยกใช้ Tempalte ที่ถูกสร้างไว้ก่อน
@@ -321,3 +350,106 @@ oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --conte
 
 oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/hello-java  --as-deployment-config --name  hello-java-docker --strategy=source
 
+#### ทดลองสร้าง JAVA EE War
+```
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/micro-java/  --as-deployment-config --name  micro-java
+```
+
+จะพบว่า Java EE มันใช้ War pack แล้วไม่มีตัว build 
+```
+I0119 15:34:34.401465   22249 imagestreamlookup.go:329] No tags found on image, returning nil
+error: unable to locate any images in image streams, image stream images with a 'supports' annotation, local docker images with name "jee"
+
+The 'oc new-app' command will match arguments to the following types:
+
+  1. Images tagged into image streams in the current project or the 'openshift' project
+     - if you don't specify a tag, we'll add ':latest'
+  2. Images in the Docker Hub, on remote registries, or on the local Docker engine
+  3. Templates in the current project or the 'openshift' project
+  4. Git repository URLs or local paths that point to Git repositories
+
+--allow-missing-images can be used to point to an image that does not exist yet.
+
+See 'oc new-app -h' for examples.
+
+```
+วิธีการแก้ไขก้คือจริงๆแล้ว Java EE มันก้ใช้ Maven ปกติ build ได้เหมือนกันนะเหมืนที่เรารันโปรแกรมในเครื่องเราโดยใช้คำสั่ง mvn thorntail:run ปุ๊ปเราจะได้ .war  มาซึ่งเพราะการเป้น .war ถ้าเราไป build บน openshift มันเลย detect เป็น java EE และถ้าไป inspect ใน ImageStream จะพบว่า buider ไม่มี jee ดั่งที่ error แสดงแสดงผลเลย วิธีการแก้ก็คือเราจะทำการสร้าง tag ใหม่ให้ฟิลลิ่งเหมือน podman tag image นั่นแหละที่เราทำการ tag ชื่อ image ให้โดย image ที่ tag ก็จะอยู่ใน namespace ที่เราเลือกไว้
+
+```
+[linxianer12@localhost openshift-practice-note]$ oc tag openshift/openjdk-11-rhel8:1.1 jee:latest
+Tag jee:latest set to openshift/openjdk-11-rhel8@sha256:5c1bb0a3e2b5ce9018e990dfef68fd040e8584975d05eee109ee4f3daf0366e1.
+[linxianer12@localhost openshift-practice-note]$ oc describe is jee
+Name:			jee
+Namespace:		developer
+Created:		20 minutes ago
+Labels:			<none>
+Annotations:		openshift.io/image.dockerRepositoryCheck=2021-01-19T09:07:42Z
+Image Repository:	default-route-openshift-image-registry.apps.shared-na4.na4.openshift.opentlc.com/developer/jee
+Image Lookup:		local=false
+Unique Images:		2
+Tags:			3
+
+latest
+  tagged from openshift/openjdk-11-rhel8@sha256:5c1bb0a3e2b5ce9018e990dfef68fd040e8584975d05eee109ee4f3daf0366e1
+
+  * registry.redhat.io/openjdk/openjdk-11-rhel8@sha256:5c1bb0a3e2b5ce9018e990dfef68fd040e8584975d05eee109ee4f3daf0366e1
+      3 seconds ago
+
+1.1
+  tagged from openshift/openjdk-11-rhel8@sha256:5c1bb0a3e2b5ce9018e990dfef68fd040e8584975d05eee109ee4f3daf0366e1
+
+  * registry.redhat.io/openjdk/openjdk-11-rhel8@sha256:5c1bb0a3e2b5ce9018e990dfef68fd040e8584975d05eee109ee4f3daf0366e1
+      2 minutes ago
+
+1.0
+  tagged from openshift/openjdk-11-rhel8@sha256:be1710f21cdb76f0ae5b11668f2132fc2699ae77eae536f6ea2aab7be4a37d01
+
+  * registry.redhat.io/openjdk/openjdk-11-rhel8@sha256:be1710f21cdb76f0ae5b11668f2132fc2699ae77eae536f6ea2aab7be4a37d01
+      3 minutes ago
+
+```
+หลังจากที่มี iamgestream JEE แล้วเราก็จะสามารถให้โปรแกรมเราสามารถ build ได้แล้วนั่นเอง :)
+```
+[linxianer12@localhost openshift-practice-note]$ oc get istag 
+NAME                 IMAGE REFERENCE                                                                                                                                  UPDATED
+backend-api:latest   image-registry.openshift-image-registry.svc:5000/developer/backend-api@sha256:a8a7646b0feb1a97a31b4d6c07a9be3fdda6121fd452072dd60bfbbb7fc5db83   45 minutes ago
+debug:latest         quay.io/redhattraining/hello-world-nginx@sha256:7f99ece5f39bf8d5d76a43cd9104a8d0a39f7135821b94bc1ebdc39cdc6dd63b                                 24 hours ago
+jee:latest           registry.redhat.io/openjdk/openjdk-11-rhel8@sha256:5c1bb0a3e2b5ce9018e990dfef68fd040e8584975d05eee109ee4f3daf0366e1                              About a minute ago
+jee:1.0              registry.redhat.io/openjdk/openjdk-11-rhel8@sha256:be1710f21cdb76f0ae5b11668f2132fc2699ae77eae536f6ea2aab7be4a37d01                              4 minutes ago
+jee:1.1              registry.redhat.io/openjdk/openjdk-11-rhel8@sha256:5c1bb0a3e2b5ce9018e990dfef68fd040e8584975d05eee109ee4f3daf0366e1                              3 minutes ago
+registry:latest      docker.io/registry@sha256:a0dd61073ad21122e5f1517682800272ef29df52041aaea7ee29e92a5d22aa28                                                       28 hours ago
+todoapp:1.0.12       image-registry.openshift-image-registry.svc:5000/developer/todoapp@sha256:e3fed634d042775d0e414c51cabd05d03cb497a04e0e34e5b3eb767f6584725c       25 hours ago
+
+```
+
+###### ทดลองกลับไปสร้าง JEE ใหม่ใน namespace ที่เราใช้งานอยู่
+จะพบว่าเราสามารถ build image ได้แล้วจากการที่ตัว detect เจอเป็น java ee
+```
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/micro-java/  --as-deployment-config --name  micro-java
+
+
+[linxianer12@localhost openshift-practice-note]$ oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/micro-java/  --as-deployment-config --name  micro-java
+--> Found image 8bd2b21 (13 months old) in image stream "developer/jee" under tag "latest" for "jee"
+
+    Java Applications 
+    ----------------- 
+    Platform for building and running plain Java applications (fat-jar and flat classpath)
+
+    Tags: builder, java
+
+    * The source repository appears to match: jee
+    * A source build using source code from https://github.com/wdrdres3qew5ts21/openshift-practice-note will be created
+      * The resulting image will be pushed to image stream tag "micro-java:latest"
+      * Use 'oc start-build' to trigger a new build
+    * This image will be deployed in deployment config "micro-java"
+    * Ports 8080/tcp, 8443/tcp, 8778/tcp will be load balanced by service "micro-java"
+      * Other containers can access this service through the hostname "micro-java"
+
+--> Creating resources ...
+    error: imagestreamtag.image.openshift.io "micro-java:latest" already exists
+    error: buildconfigs.build.openshift.io "micro-java" already exists
+    deploymentconfig.apps.openshift.io "micro-java" created
+    error: services "micro-java" already exists
+--> Failed
+
+```
