@@ -11,6 +11,7 @@
   "dependencies": {
     "restify": "4.3.0",
     "sequelize": "3.14.2",
-    "mysql": "2.9.0"
+    "mysql": "2.9.0",
+     "restify-cors-middleware": "1.1.1"
   }
 }
