@@ -14,7 +14,7 @@ RUN yum clean all
 COPY nginx.conf /etc/nginx/
 
 RUN touch /run/nginx.pid
-RUN chgrp -R nginx /var/log/nginx /run/nginx.pid
+RUN chgrp -R 0 /var/log/nginx /run/nginx.pid
 RUN chmod -R 770 /var/log/nginx /run/nginx.pid
 
 RUN ls -alZ /var/log
