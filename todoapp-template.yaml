@@ -1,0 +1,68 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: "todoapp-template"
+objects:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      customLabel: "${CUSTOM_LABEL}"
+      app: todoapp
+      app.kubernetes.io/component: todoapp
+      app.kubernetes.io/instance: todoapp
+      tier: frontend
+    name: todoapp
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: todoapp
+        tier: frontend
+    strategy: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        labels:
+          deployment: todoapp
+          tier: frontend
+      spec:
+        containers:
+        - image: 'quay.io/linxianer12/todoapp:1.0.12'
+          name: todoapp
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+  status: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    labels:
+      app: todoapp
+      app.kubernetes.io/component: todoapp
+      app.kubernetes.io/instance: todoapp
+      tier: frontend
+    name: todoapp
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      deployment: todoapp
+      tier: frontend
+  status:
+    loadBalancer: {}
+# Paramters ใช้งานเป็น  List อย่าลืมนะ
+parameters:
+- description: "Custom App Label"
+  displayName: "Custom App Label"
+  generate:
+  name: CUSTOM_LABEL
+  required: false
+  value: "NTTCustomLabel"

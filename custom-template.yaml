@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: mydb
+      app.kubernetes.io/component: mydb
+      app.kubernetes.io/instance: mydb
+      location: bangkok
+    name: mydb
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: mydb
+        location: bangkok
+    strategy: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          deployment: mydb
+          location: bangkok
+      spec:
+        containers:
+        - image: mydb:5.7v
+          name: mydb
+          resources: {}
+  status: {}
+

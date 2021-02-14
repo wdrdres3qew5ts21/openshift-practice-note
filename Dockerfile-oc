@@ -1,0 +1,11 @@
+from registry.redhat.io/ubi8
+label AUTHOR=Naomilin  \
+      INFRA="Red Hat 8" \ 
+      APPLICATION="Openshift Client 4.6"
+
+workdir /app
+
+add oc.tar.gz .
+
+entrypoint ["./oc"]
+cmd ["version"]

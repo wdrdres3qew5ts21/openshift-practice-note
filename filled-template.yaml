@@ -1,0 +1,127 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-database_name: '{.data[''database-name'']}'
+      template.openshift.io/expose-password: '{.data[''database-password'']}'
+      template.openshift.io/expose-root_password: '{.data[''database-root-password'']}'
+      template.openshift.io/expose-username: '{.data[''database-user'']}'
+    labels:
+      template: mysql-persistent-template
+    name: lnwza-svc
+  stringData:
+    database-name: sampledb
+    database-password: OmK6pUURWbsROc8S
+    database-root-password: 1n46f2UvScguyhAy
+    database-user: linxianer12
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: mysql://{.spec.clusterIP}:{.spec.ports[?(.name=="mysql")].port}
+    labels:
+      template: mysql-persistent-template
+    name: lnwza-svc
+  spec:
+    ports:
+    - name: mysql
+      port: 3306
+    selector:
+      name: lnwza-svc
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    labels:
+      template: mysql-persistent-template
+    name: lnwza-svc
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    labels:
+      template: mysql-persistent-template
+    name: lnwza-svc
+  spec:
+    replicas: 1
+    selector:
+      name: lnwza-svc
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: lnwza-svc
+      spec:
+        containers:
+        - env:
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: lnwza-svc
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: lnwza-svc
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-root-password
+                name: lnwza-svc
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: lnwza-svc
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            initialDelaySeconds: 30
+            tcpSocket:
+              port: 3306
+            timeoutSeconds: 1
+          name: mysql
+          ports:
+          - containerPort: 3306
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -i
+              - -c
+              - MYSQL_PWD="$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE -e 'SELECT 1'
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 512Mi
+          volumeMounts:
+          - mountPath: /var/lib/mysql/data
+            name: lnwza-svc-data
+        volumes:
+        - name: lnwza-svc-data
+          persistentVolumeClaim:
+            claimName: lnwza-svc
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - mysql
+        from:
+          kind: ImageStreamTag
+          name: mysql:8.0
+          namespace: openshift
+      type: ImageChange
+    - type: ConfigChange
+kind: List
+metadata: {}

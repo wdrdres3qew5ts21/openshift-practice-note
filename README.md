@@ -453,3 +453,77 @@ oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --conte
 --> Failed
 
 ```
+ปัญหาที่เหมือนจะแก้ได้แล้วเพราะพบว่า describe imagestream แล้วไม่ติด authon แต่ดันไปติดตอนกำลังจะ build จริงๆแทน
+```
+oc [linxianer12@localhost openshift-practice-note]$ oc get pod
+NAME                       READY   STATUS      RESTARTS   AGE
+backend-api-1-build        0/1     Completed   0          62m
+backend-api-1-deploy       0/1     Completed   0          61m
+backend-api-1-xfg6x        1/1     Running     0          61m
+debug-664b74d884-vw247     1/1     Running     0          18h
+micro-java-1-build         0/1     Error       0          17m
+mysql-1-deploy             0/1     Completed   0          153m
+mysql-1-rlmc2              1/1     Running     0          153m
+registry-5b5795b4d-2nlxd   1/1     Running     0          18h
+todoapp-7d8bb7bfbf-pxqxg   1/1     Running     0          18h
+[linxianer12@localhost openshift-practice-note]$ oc logs -f micro-java-1-build
+Caching blobs under "/var/cache/blobs".
+Warning: Pull failed, retrying in 5s ...
+Warning: Pull failed, retrying in 5s ...
+Warning: Pull failed, retrying in 5s ...
+error: build error: After retrying 2 times, Pull image still failed due to error: unable to retrieve auth token: invalid username/password: unauthorized: Please login to the Red Hat Registry using your Customer Portal credentials. Further instructions can be found here: https://access.redhat.com/RegistryAuthentication
+
+```
+เราเลยต้องแก้ด้วยการที่ point reference address ไปหา ImageStream ใน NameSapce openhift ที่มี Credentials จริงๆแทนนั่นเอง !
+
+oc process -f mysql-template.yaml -p MYSQL_USER=linxianer12 -p DATABASE_SERVICE_NAME=lnwza-svc -o yaml > filled-template.yaml คือการประมวลผลค่าแล้ว inject ค่าลงไปใน Place Hodler มันเลยเรียกว่า Process Template นั่นเองซึ่งเราสามารถเอาไปทำ Tempalte ต่างๆได้
+
+
+##### Persistent Volume 
+การที่เราใช้ PV จะทำให้เราสามารถแชร์ข้อมูล Data ของ Stateful Application ได้ตัวอย่างเช่นถ้าเราลองแก้ pod nginx ให้แสดงผลกันต่างออกไปจากเดิมเมื่อเราใช้การ Replicas แล้วสิ่งที่ตามมาก้คือจะมี Pod ที่ Config ไม่เหมือนกันต่างจากเดิมกันออกไปซึ่งถ้าเราอยากให้ข้อมูลใน 
+Volume Share แล้วเหมือนกันก็จะต้องเลือกเป็น PV แล้วไปทำการแชร์ Volume กันแนั่นเอง  แต่ก็จะมีเรื่องการ RWO หรือ RWX ด้วยนะซึ่ง many จะทำให้หลายๆ node เข้ามาอ่าน Share Volume ด้วยกันได้ (Solution Storage ต้องรองรับดว้ยนะ) ส่วน ถ้าไม่รองรองรับก็ควรให้ Pod อ่าน PV ที่อยู่ในเครื่องเดียวกันไปเลยเพราะว่าเร็วกว่าด้วยนั่นเอง
+
+##### Source to Image S2I custom
+หลักการที่ Openshift มันสามารถ Build Source Code ได้นั่นก็เพราะว่ามันใช้คำสั่งที่ซ่อนใน Based Image แล้วไป Exexute การ Build นั่นเองแล้วพอมันไ่มี /usr/libexec/s2i/assemble
+ก็ทำให้ error ไปนั่นเอง ! เพราะ automate detect script ไม่มี
+```
+
+[linxianer12@localhost micro-java]$ oc logs -f openshift-practice-note-1-build
+Caching blobs under "/var/cache/blobs".
+Getting image source signatures
+Copying blob sha256:a076a628af6f7dcabc536bee373c0d9b48d9f0516788e64080c4e841746e6ce6
+Copying blob sha256:eba5b958e0416b8e5d7b2ae81a51f33cfba67f5d9ea139a5ffd099b8956dfdec
+Copying blob sha256:943d8acaac04a2b66af03bcc85abe1cd3f50e06d7e193634e04d4e55c4fc7cc8
+Copying blob sha256:b9998d19c11696925915d7583990a0b9e239265533655abc5376d117ec9cfe3c
+Copying config sha256:9c3b768888cc4b79acd16e7fc3f56939615fa33a59417fd1494f5b8b48d67ec3
+Writing manifest to image destination
+Storing signatures
+Generating dockerfile with builder image docker.io/openjdk@sha256:27ed5651bb4be96bbdc8779c69acd912391950ff79bd6909ccc295c8eec2e52b
+STEP 1: FROM docker.io/openjdk@sha256:27ed5651bb4be96bbdc8779c69acd912391950ff79bd6909ccc295c8eec2e52b
+STEP 2: LABEL "io.openshift.build.commit.message"="[ADD] วิธีการ Tag Image สำหรับ Build Java EE จาก Image ที่มีอยู่แล้ว"       "io.openshift.build.source-location"="https://github.com/wdrdres3qew5ts21/openshift-practice-note"       "io.openshift.build.source-context-dir"="DO288-Developer/micro-java"       "io.openshift.build.image"="docker.io/openjdk@sha256:27ed5651bb4be96bbdc8779c69acd912391950ff79bd6909ccc295c8eec2e52b"       "io.openshift.build.commit.author"="Naomi Lin <linxianer12@localhost.localdomain>"       "io.openshift.build.commit.date"="Tue Jan 19 16:19:54 2021 +0700"       "io.openshift.build.commit.id"="71a5863b095a7b485f719778190f83caa7374255"       "io.openshift.build.commit.ref"="main"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="openshift-practice-note-1"     OPENSHIFT_BUILD_NAMESPACE="developer"     OPENSHIFT_BUILD_SOURCE="https://github.com/wdrdres3qew5ts21/openshift-practice-note"     OPENSHIFT_BUILD_COMMIT="71a5863b095a7b485f719778190f83caa7374255"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+/bin/sh: 1: /usr/libexec/s2i/assemble: not found
+subprocess exited with status 127
+subprocess exited with status 127
+error: build error: error building at STEP "RUN /usr/libexec/s2i/assemble": exit status 127
+
+```
+
+oc apply -f todoapp-template.yaml
+
+oc new-app   --template=todoapp-template -l os=RHEL8 -l author=linxianer12 -p CUSTOM_LABEL=lnwza007label
+
+###### ทำการ Deploy Frontend Backend และ DB แล้วประกอบเข้าด้วยกันด้วยการใช้ Template
+oc new-app openshift/mysql-persistent -p MYSQL_USER=linxianer12 -p MYSQL_PASSWORD=cyberpunk2077 -p MYSQL_ROOT_PASSWORD=cyberpunk2077 -p MYSQL_DATABASE=telecom
+
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/todo-backend --name todo-backend -e DATABASE_NAME=telecom -e DATABASE_USER=linxianer12 -e DATABASE_PASSWORD=cyberpunk2077 -e DATABASE_SVC=mysql
+
+
+ดู env จาก nginx.conf พบว่าน่าจะ injectt ตัวแปรเข้าไปได้
+
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/todo-frontend --name todo-frontend  -e BACKEND_HOST=todo-backend:8080 --strategy=docker
