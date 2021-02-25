@@ -530,3 +530,49 @@ oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --conte
 
 ###### Probe ทดสอบ Health
 oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/probes/  --as-deployment-config --name  probes
+
+
+### สร้าง Project ต่อกัน
+นำ DB MySQL มาต่อกับ Frontend Backend Quarkus
+```
+oc get template -n openshift
+```
+process ใช้ในการแสดง Parameter ของ Template ซึ่งจะไม่สร้างให่แต่จะโชว์ paramter เดิม
+```
+oc process  -n openshift mysql-ephemeral  --parameters
+```
+สร้าง password และแถม label ให้
+```
+oc new-app mysql-ephemeral -p MYSQL_USER=linxianer12 -p MYSQL_PASSWORD=cyberpunk2077 -p MYSQL_ROOT_PASSWORD=cyberpunk2077 -l env=dev -l location=thailand
+
+NAME             READY   STATUS      RESTARTS   AGE   LABELS
+mysql-1-deploy   0/1     Completed   0          82s   openshift.io/deployer-pod-for.name=mysql-1
+mysql-1-fnfjq    1/1     Running     0          78s   deployment=mysql-1,deploymentconfig=mysql,name=mysql
+```
+
+เริ่มสร้าง Application 3 Tier
+```
+oc create secret generic backend-secret --from-literal="DATABASE_URL=mariadb"   --from-literal="DATABASE_USERNAME=linxianer12" --from-literal="DATABASE_PASSWORD=cyberpunk2077"
+
+# Import Image จากทุก Tag เข้ามาต้องมี --from ด้วยไม่อย่างนั้นจะใช้ไมไ่ด้กับ --all ซึ่งเวลา import มาจะได้ SHA@256 ตรงกับใน Container Registryในทุกๆ Version
+# สิ่งที่น่าสนใจคือถ้าเราใช้ import-image การใช้ sha256 แล้วเกิดมีการอัพเดททัพกับ version เดิมเช่น 1.1.0 แล้วล่ะก็ !!!! sha ก็จะเปลี่ยนใช้มั้ยล่ะ ?
+# และเมื่อเราสั่ง Pull ก็จะหาไม่เจอทันทีเพราะว่า sha ปัจจุบันชี้ไปหา 1.1.0 ของเดิมก่อนอัพเดท แต่ 1.1.0 ถูกอัพเดทไปแล้วหา SHA ใหม่ไม่เจอก็จะอัพเดทไมไ่ด้
+oc import-image vue-todoapp-frontend --from=quay.io/linxianer12/vue-todoapp-frontend  --all --confirm
+
+oc new-app --docker-image=quay.io/linxianer12/quarkus-todoapp-backend:1.0.0  --name=quarkus-todoapp-backend
+
+oc set env dc quarkus-todoapp-backend  --from=secret/backend-secret
+
+oc new-app --docker-image=quay.io/linxianer12/vue-todoapp-frontend:1.1.0 --name vue-todoapp-frontend
+```
+
+
+kubectl create deployment --image quay.io/linxianer12/quarkus-todoapp-backend:1.0.0 quarkus-todoapp-backend
+
+kubectl set env deployment quarkus-todoapp-backend --from=secret/backend-secret 
+
+kubectl expose deployment   quarkus-todoapp-backend  --type=NodePort --port=7070 --target-port=7070 --external-ip=192.168.122.215
+
+kubectl create deployment  --image quay.io/linxianer12/vue-todoapp-frontend:1.0.0  vue-todoapp-frontend
+
+kubectl expose deployment vue-todoapp-frontend    --type=NodePort --port=80 --target-port=80 --external-ip=192.168.122.215
