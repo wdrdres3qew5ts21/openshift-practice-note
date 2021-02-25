@@ -527,3 +527,6 @@ oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --conte
 ดู env จาก nginx.conf พบว่าน่าจะ injectt ตัวแปรเข้าไปได้
 
 oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/todo-frontend --name todo-frontend  -e BACKEND_HOST=todo-backend:8080 --strategy=docker
+
+###### Probe ทดสอบ Health
+oc new-app https://github.com/wdrdres3qew5ts21/openshift-practice-note   --context-dir=DO288-Developer/probes/  --as-deployment-config --name  probes
