@@ -1,4 +1,25 @@
-# DO280-apps
+# Openshift Developer Guide
+เมื่อพูดถึง Red Hat Linux หลายๆคนก็จะนึกถึง Linux OS ที่มีความเสถียรและนิยมใช้การใน Production ระยะยาวที่ต้องการ Support ใน Enterprise ต่างๆซึ่ง Openshift เองนั้นก็เป็น Kubernetes Distribution หนึ่งที่ Red Hat เข้าไป Contribute มานานแล้วตั้งแต่ Kubernetes เกิดขึ้นมาใหม่ๆ แน่นอนว่าเสน่ห์ในเรื่องของ Security อันเป็นเอกลักษณ์ของ Red Hat ก็ตามมาด้วยอย่างเรื่องของ SELinux แต่จะมาโฟกัสให้กับ โลกที่เป็น Container แต่กระนั้นเองบางคนอาจจะสงสัยว่าเอ๊ Container มันไปมีเรื่องของ Security อะไรแบบนี้ด้วยหรือเนี่ยแล้วมันเกี่ยวอะไรกับ SELinux กันนะซึ่งสำหรับตัวผมเองที่ลองศึกษามาบ้างก็พบว่าจริงๆแล้ว Feature Security ของ Container ที่ Deploy ใน Kubernetes นั้นมีเป็นปกติแต่เดิมอยู่แล้ว  เพียงแต่ว่าเราอาจจะไมไ่ด้ไปสนใจมันสักเท่าไหร่นัก แต่ถ้าเกิดเราลองใช้ Container บางตัวเช่น Busybox แล้วไป Deploy ใน Openshift หรือ Kubernetes บาง Cluster ที่อาจจะมี Envrionment ที่เซ็ทอัพ Security Context เอาไว้เราอาจจะพบว่าเราไม่สามารถ Ping ออกจาก Container นั้นได้เป็นเพราะไม่ได้ให้สิทธิ Linux Capabilities ซึ่งจากภาพข้างล่างนั้นเป็นตัวอย่างของ Pod ที่ได้สิทธิในการที่ Container ใน Pod นั้นสามารถตั้งค่า Network ต่างๆเช่น Routing, Firewall และก็สามารถเปลี่ยนเวลาได้นั่นเอง ซึ่งภาพนี้ก็มาจาก Document โดยตรงเองของ Kubernetes ในหัวข้อของ
+[Security Context Container - Linux Capabilities](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-capabilities-for-a-container)
+![](image/security/1.pod%20capability.png)
+
+ซึ่งสำหรับในมุมของ Developer ใหม่ๆอย่างผมเองโดยปกติก็อาจจะไม่ได้ค่อยมาเซ็ทค่าเหล่านี้บ่อยๆนักแต่เมื่อเราได้ลองมา Deploy Container ใน Kubernetes สภาพแวดล้อมที่ให้ความสำคัญกับเรื่องเหล่านี้ก็ทำให้ผมเห็นภาพมากขึ้นว่าเรื่องของ Security ถึงเราจะตามไป Container ก็ยังตามมา
+ซึ่งสำหรับใครที่ยังนึกภาพไม่ออกเดี่ยวเราจะเริ่มจากการใช้ Podman ในการสร้าง Container ก่อนซึ่งที่ใช้ Podman ก็เพราะว่าตัว Podman นั้น Implement ตามมาตราฐานของ format Open Container Initiative ตั้งแต่แรกรวมไปถึงการที่ Container Network Interface (CNI) เองเองก็ Implement จาก Standard กลางซึ่งจะมีความคล้ายกับ Network ใน Kubernetes ซึ่งจะต้องลงทั้ง CNI แล้วก็ Container Runtime Interface (CRI)
+ทำให้ในบางจุดเช่นการดู Network Bridge Interface นั้นสามารถเข้าไปดูได้ตรงๆเห็นภาพผ่านคำสั่งอย่าง ip netns ก็เลยเลือก Podman ซึ่งสามารถแสดงให้เห็นถึงเรื่องพวกนี้ได้ง่ายๆหน่ะครับ กับด้วยคุณสมบัติการทำ Linux Capabilities เองก็อยู่ในตัว Podman เรียบร้อยแล้ว
+ซึ่งชื่อของมันก็เลยเรียกว่า Podman เพราะเป็นการจำลองเอาคุณสมบัติของ Pod ใน Kubernetes มาใช้ให้เห็นภาพมากขึ้นกว่า Container ตรงๆอย่าง Docker นั่นเอง (แต่น้องปลาวาฬไมไ่ด้ผิดอะไรนะ แง 5555) 
+ซึ่งพื้นฐานของ Podman กับความเป็นมาของ Container จริงๆก็สามารถลองไปอ่านของ Blog คุณพี่ suseman ได้เลยครับผม (SUSE กับ Red Hat ก็พันธมิตรกันได้นะ รู้เขารู้เรา 55555)
+
+(MicroOS Container: Podman ทางเลือกใหม่สำหรับผู้ใช้ Docker)[https://www.suseman.biz/podman-docker/]
+
+podman run -d   --cap-drop=net_admin  --cap-drop=net_raw   docker.io/praqma/network-multitool
+
+podman run docker.io/praqma/network-multitool
+
+หลังจากที่เราเห็น Linux Capabilities ไปแล้วต่อไปเราจะลองมาดูในส่วนของ SELinux กันบ้างว่ามีผลอย่างไรกันบ้าง
+
+
+
+โดยเราจะลองมาดูกันว่าให้ความสำคัญกับเรื่องของ Security เป็นพิเศษเมื่อเทียบกับ Kubernetes Distribution โดยทั่วๆ
 
 ### Inspect Container
 docker:// ใช้เรียกบน HTTP ส่วน containers-storage: ใช้กับ podman ส่วน docker-daemon: ใช้กับ image ที่มีอยู่ในครเื่องเราของ docker 

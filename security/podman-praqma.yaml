@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ping
+spec:
+  containers:
+    - name: ping-container
+      image: docker.io/busybox
+#      image: quay.io/linxianer12/network-multitool
+      command: ["/bin/ping", "google.com"]
+      securityContext:
+        capabilities:
+          # add:
+          #   - NET_RAW
+          drop:
+            - NET_RAW
