@@ -17,6 +17,7 @@ COPY src/ /usr/share/nginx/html
 
 RUN touch /run/nginx.pid
 RUN chgrp -R 0 /var/log/nginx /run/ && \
+    chmod -R 770 /var/log/nginx /run/ && \
     ls -alZ /var/log && \
     ls -alZ /run
   
