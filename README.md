@@ -597,3 +597,6 @@ kubectl expose deployment   quarkus-todoapp-backend  --type=NodePort --port=7070
 kubectl create deployment  --image quay.io/linxianer12/vue-todoapp-frontend:1.0.0  vue-todoapp-frontend
 
 kubectl expose deployment vue-todoapp-frontend    --type=NodePort --port=80 --target-port=80 --external-ip=192.168.122.215
+
+
+ oc new-app --as-deployment-config  https://github.com/wdrdres3qew5ts21/openshift-practice-note --context-dir=DO288-Developer/php-helloworld
