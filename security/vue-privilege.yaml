@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: vue-todoapp-frontend-group-privilege
+  name: vue-todoapp-frontend-group-privilege
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vue-todoapp-frontend-group-privilege
+  template:
+    metadata:
+      labels:
+        app: vue-todoapp-frontend-group-privilege
+    spec:
+      containers:
+      - image: quay.io/linxianer12/vue-todoapp-frontend:1.0.0
+        name: vue-todoapp-frontend
+        securityContext:
+          capabilities:
+            add: ["NET_BIND_SERVICE"]
