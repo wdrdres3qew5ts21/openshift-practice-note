@@ -1,0 +1,37 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: todoapp-frontend
+      app.kubernetes.io/component: todoapp-frontend
+      app.kubernetes.io/instance: todoapp-frontend
+    name: todoapp-frontend
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: todoapp-frontend
+    strategy: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          deployment: todoapp-frontend
+      spec:
+        containers:
+        imagePullSecrets:
+        - openshiftntt-registry
+        - image: openshiftntt.azurecr.io/todoapp-frontend:exam
+          name: todoapp-frontend
+          resources: {}
+          
+  status: {}
+kind: List
+metadata: {}
